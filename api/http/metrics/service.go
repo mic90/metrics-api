@@ -6,20 +6,20 @@ import (
 	"github.com/mic90/metrics-api/persistance"
 )
 
-// MetricService allows metrics manipulation
-type MetricService struct {
+// Service allows metrics manipulation
+type Service struct {
 	driver persistance.Storage
 }
 
-// NewMetricService returns MetricService with specified storage driver
-func NewMetricService(driver persistance.Storage) *MetricService {
-	return &MetricService{
+// NewService returns Service with specified storage driver
+func NewService(driver persistance.Storage) *Service {
+	return &Service{
 		driver,
 	}
 }
 
 // GetMetrics returns all metrics
-func (m *MetricService) GetMetrics(ctx *fiber.Ctx) error {
+func (m *Service) GetMetrics(ctx *fiber.Ctx) error {
 	met := m.driver.GetMetrics()
 	ret := make([]MetricDescriptor, 0, len(met))
 
@@ -34,7 +34,7 @@ func (m *MetricService) GetMetrics(ctx *fiber.Ctx) error {
 }
 
 // GetMetrics returns all metrics
-func (m *MetricService) AddMetric(ctx *fiber.Ctx) error {
+func (m *Service) AddMetric(ctx *fiber.Ctx) error {
 	var descDTO MetricDescriptor
 	if err := ctx.BodyParser(&descDTO); err != nil {
 		return fiber.ErrBadRequest

@@ -22,13 +22,13 @@ func main() {
 	api := app.Group("api").Group("v1")
 
 	// setup health routes
-	healthService := health.HealthService{}
-	health.HealthRouter(api, healthService)
+	healthService := health.Service{}
+	health.Router(api, healthService)
 
 	// setup metrics routes
 	storage := driver.NewMemory()
-	metricsService := metrics.NewMetricService(storage)
-	metrics.MetricRouter(api, metricsService)
+	metricsService := metrics.NewService(storage)
+	metrics.Router(api, metricsService)
 
 	log.Fatal(app.Listen(":8080"))
 }

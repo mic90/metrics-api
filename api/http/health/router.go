@@ -4,8 +4,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// HealthRouter contains all health routes
-func HealthRouter(app fiber.Router, svc HealthService) {
+// Router contains all health routes
+func Router(app fiber.Router, svc Service) {
 	r := app.Group("/health")
 
 	r.Get("/", svc.HealthCheck)

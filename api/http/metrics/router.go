@@ -4,8 +4,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// MetricRouter contains all the metrics routes
-func MetricRouter(app fiber.Router, svc *MetricService) {
+// Router contains all the metrics routes
+func Router(app fiber.Router, svc *Service) {
 	r := app.Group("/metric")
 
 	r.Get("/", svc.GetMetrics)
