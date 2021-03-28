@@ -6,8 +6,8 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/helmet/v2"
-	"github.com/mic90/metrics-api/api/http/router"
-	"github.com/mic90/metrics-api/api/http/services"
+	"github.com/mic90/metrics-api/api/http/health"
+	"github.com/mic90/metrics-api/api/http/metrics"
 	"github.com/mic90/metrics-api/persistance/driver"
 	"log"
 )
@@ -22,13 +22,13 @@ func main() {
 	api := app.Group("api").Group("v1")
 
 	// setup health routes
-	healthService := services.HealthService{}
-	router.HealthRouter(api, healthService)
+	healthService := health.HealthService{}
+	health.HealthRouter(api, healthService)
 
 	// setup metrics routes
 	storage := driver.NewMemory()
-	metricsService := services.NewMetricService(storage)
-	router.MetricRouter(api, metricsService)
+	metricsService := metrics.NewMetricService(storage)
+	metrics.MetricRouter(api, metricsService)
 
 	log.Fatal(app.Listen(":8080"))
 }

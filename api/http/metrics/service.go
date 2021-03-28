@@ -1,8 +1,7 @@
-package services
+package metrics
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/mic90/metrics-api/api/http/dto"
 	"github.com/mic90/metrics-api/metrics"
 	"github.com/mic90/metrics-api/persistance"
 )
@@ -22,10 +21,10 @@ func NewMetricService(driver persistance.Storage) *MetricService {
 // GetMetrics returns all metrics
 func (m *MetricService) GetMetrics(ctx *fiber.Ctx) error {
 	met := m.driver.GetMetrics()
-	ret := make([]dto.MetricDescriptor, 0, len(met))
+	ret := make([]MetricDescriptor, 0, len(met))
 
 	for _, value := range met {
-		ret = append(ret, dto.MetricDescriptor{
+		ret = append(ret, MetricDescriptor{
 			Name: value.Name,
 			Type: value.Type,
 		})
@@ -36,7 +35,7 @@ func (m *MetricService) GetMetrics(ctx *fiber.Ctx) error {
 
 // GetMetrics returns all metrics
 func (m *MetricService) AddMetric(ctx *fiber.Ctx) error {
-	var descDTO dto.MetricDescriptor
+	var descDTO MetricDescriptor
 	if err := ctx.BodyParser(&descDTO); err != nil {
 		return fiber.ErrBadRequest
 	}

@@ -1,4 +1,4 @@
-package dto
+package metrics
 
 type MetricDescriptor struct {
 	Name string `json:"name"`

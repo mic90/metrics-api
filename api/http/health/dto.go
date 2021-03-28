@@ -1,4 +1,4 @@
-package dto
+package health
 
 type HealthStatus string
 
