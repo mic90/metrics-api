@@ -4,12 +4,12 @@ import "errors"
 
 var ErrUnsupportedMetricType = errors.New("unsupported metric type")
 
-func FromType(name, _type string) (Metric, error) {
+func FromDescriptor(desc Descriptor) (Metric, error) {
 	switch {
-	case _type == "counter":
-		return NewCounter(name), nil
-	case _type == "gauge":
-		return NewGauge(name), nil
+	case desc.Type == "counter":
+		return NewCounter(), nil
+	case desc.Type == "gauge":
+		return NewGauge(), nil
 	default:
 		return nil, ErrUnsupportedMetricType
 	}

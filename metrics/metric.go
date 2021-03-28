@@ -13,8 +13,6 @@ type Timed interface {
 type Metric interface {
 	Timed
 
-	Name() string
-
 	AddData(data.Point) error
 	Data() []data.Point
 	Last() data.Point

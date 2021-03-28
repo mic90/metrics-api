@@ -5,19 +5,21 @@ import (
 	"github.com/mic90/metrics-api/metrics/data"
 )
 
+var ErrInvalidValue = errors.New("counter can be only increased or reset")
+
 type Counter struct {
 	rawMetric
 }
 
-func NewCounter(name string) Metric {
+func NewCounter() Metric {
 	return &Counter{
-		*newRaw(name),
+		*newRaw(),
 	}
 }
 
 func (c *Counter) AddData(dataPoint data.Point) error {
-	if dataPoint.Value < c.lastValue.Value {
-		return errors.New("counter can't be decreased")
+	if dataPoint.Value < c.lastValue.Value && dataPoint.Value != 0 {
+		return ErrInvalidValue
 	}
 
 	c.values.Add(dataPoint)

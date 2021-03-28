@@ -7,10 +7,10 @@ import (
 )
 
 type Storage interface {
-	GetMetrics() []metrics.Metric
-	AddMetric(metrics.Metric) error
-	RemoveMetric(string) error
+	GetMetrics() []metrics.Descriptor
+	AddMetric(metrics.Descriptor) error
+	RemoveMetric(metrics.Descriptor) error
 
-	AddData(string, float64) error
-	GetData(string, time.Time, time.Time) ([]data.Point, error)
+	AddData(metrics.Descriptor, float64) error
+	GetData(metrics.Descriptor, time.Time, time.Time) ([]data.Point, error)
 }

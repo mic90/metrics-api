@@ -8,9 +8,9 @@ type Gauge struct {
 	rawMetric
 }
 
-func NewGauge(name string) Metric {
+func NewGauge() Metric {
 	return &Gauge{
-		*newRaw(name),
+		*newRaw(),
 	}
 }
 

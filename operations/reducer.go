@@ -1,7 +1,10 @@
 package operations
 
-import "time"
+import (
+	"github.com/mic90/metrics-api/metrics"
+	"time"
+)
 
 type Reducer interface {
-	Process(string, time.Time, time.Time) (float64, error)
+	Process(metrics.Descriptor, time.Time, time.Time) (float64, error)
 }

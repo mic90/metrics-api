@@ -10,7 +10,7 @@ import (
 )
 
 func TestShard_AddData(t *testing.T) {
-	m, err := metrics.FromType(metricName, metricType)
+	m, err := metrics.FromDescriptor(metricName, metricType)
 
 	assert.NoError(t, err)
 
@@ -29,7 +29,7 @@ func TestShard_AddData(t *testing.T) {
 }
 
 func TestShard_Data_OnEmptyShard(t *testing.T) {
-	m, err := metrics.FromType(metricName, metricType)
+	m, err := metrics.FromDescriptor(metricName, metricType)
 
 	assert.NoError(t, err)
 
@@ -40,7 +40,7 @@ func TestShard_Data_OnEmptyShard(t *testing.T) {
 }
 
 func TestShard_Data(t *testing.T) {
-	m, err := metrics.FromType(metricName, metricType)
+	m, err := metrics.FromDescriptor(metricName, metricType)
 
 	assert.NoError(t, err)
 
@@ -61,7 +61,7 @@ func TestShard_Data(t *testing.T) {
 }
 
 func TestShard_DataFrom(t *testing.T) {
-	m, err := metrics.FromType(metricName, metricType)
+	m, err := metrics.FromDescriptor(metricName, metricType)
 
 	assert.NoError(t, err)
 
@@ -81,7 +81,7 @@ func TestShard_DataFrom(t *testing.T) {
 }
 
 func TestShard_DataTo(t *testing.T) {
-	m, err := metrics.FromType(metricName, metricType)
+	m, err := metrics.FromDescriptor(metricName, metricType)
 
 	assert.NoError(t, err)
 

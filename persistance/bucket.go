@@ -11,26 +11,24 @@ import (
 var ErrIndexNotFound = errors.New("time index not found")
 
 type Bucket struct {
-	name          string
-	_type         string
+	descriptor    metrics.Descriptor
 	shards        []*Shard
 	shardsLookup  map[string][]int
 	shardDuration time.Duration
 	index         int
 }
 
-func NewBucket(name, _type string, dur time.Duration) (*Bucket, error) {
+func NewBucket(desc metrics.Descriptor, dur time.Duration) (*Bucket, error) {
 	var (
 		m   metrics.Metric
 		err error
 	)
-	if m, err = metrics.FromType(name, _type); err != nil {
+	if m, err = metrics.FromDescriptor(desc); err != nil {
 		return nil, err
 	}
 	shard := NewShard(m, dur)
 	return &Bucket{
-		name,
-		_type,
+		desc,
 		[]*Shard{shard},
 		map[string][]int{
 			timeHash(shard.MinT()): {0},
@@ -38,6 +36,10 @@ func NewBucket(name, _type string, dur time.Duration) (*Bucket, error) {
 		dur,
 		0,
 	}, nil
+}
+
+func (b *Bucket) Descriptor() metrics.Descriptor {
+	return b.descriptor
 }
 
 func (b *Bucket) AddData(dataPoint data.Point) error {
@@ -54,7 +56,7 @@ func (b *Bucket) AddData(dataPoint data.Point) error {
 	var m metrics.Metric
 
 	// we have reached max timestamp for the current shard, make a new one
-	if m, err = metrics.FromType(b.name, b._type); err != nil {
+	if m, err = metrics.FromDescriptor(b.descriptor); err != nil {
 		return err
 	}
 	if err := m.AddData(dataPoint); err != nil {
@@ -112,6 +114,10 @@ func (b *Bucket) Data(from, to time.Time) []data.Point {
 
 func (b *Bucket) Size() int {
 	return len(b.shards)
+}
+
+func (b *Bucket) Hash() string {
+	return b.descriptor.Hash()
 }
 
 func (b *Bucket) findIndexes(t time.Time, step time.Duration) ([]int, error) {

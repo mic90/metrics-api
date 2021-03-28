@@ -6,17 +6,15 @@ import (
 )
 
 type rawMetric struct {
-	name      string
 	values    data.Buffer
 	lastValue data.Point
 	from      time.Time
 	to        time.Time
 }
 
-func newRaw(name string) *rawMetric {
+func newRaw() *rawMetric {
 	buf := data.NewBuffer()
 	return &rawMetric{
-		name:   name,
 		values: *buf,
 		lastValue: data.Point{
 			Value: 0,
@@ -25,10 +23,6 @@ func newRaw(name string) *rawMetric {
 		from: time.Now(),
 		to:   time.Now(),
 	}
-}
-
-func (c rawMetric) Name() string {
-	return c.name
 }
 
 func (c rawMetric) Last() data.Point {
