@@ -43,7 +43,11 @@ func NewBucket(name, _type string, dur time.Duration) (*Bucket, error) {
 func (b *Bucket) AddData(dataPoint data.Point) error {
 	err := b.shards[b.index].AddData(dataPoint)
 
-	if err != nil && !errors.Is(err, ErrShardMaxReached) {
+	if err == nil {
+		return nil
+	}
+
+	if !errors.Is(err, ErrShardMaxReached) {
 		return err
 	}
 
@@ -53,16 +57,14 @@ func (b *Bucket) AddData(dataPoint data.Point) error {
 	if m, err = metrics.FromType(b.name, b._type); err != nil {
 		return err
 	}
-
-	shard := NewShard(m, b.shardDuration)
-	if err := shard.AddData(dataPoint); err != nil {
+	if err := m.AddData(dataPoint); err != nil {
 		return err
 	}
 
+	shard := NewShard(m, b.shardDuration)
 	hash := timeHash(shard.MinT())
 
 	b.shards = append(b.shards, shard)
-
 	b.index++
 
 	// store shards lookup data
@@ -75,7 +77,7 @@ func (b *Bucket) AddData(dataPoint data.Point) error {
 	return nil
 }
 
-func (b *Bucket) Data(from, to time.Time) ([]data.Point, error) {
+func (b *Bucket) Data(from, to time.Time) []data.Point {
 	var (
 		startIndexes []int
 		endIndexes   []int
@@ -83,10 +85,10 @@ func (b *Bucket) Data(from, to time.Time) ([]data.Point, error) {
 		ret          []data.Point
 	)
 
-	if startIndexes, err = b.findIndexes(from); err != nil {
-		return ret, err
-	} else if endIndexes, err = b.findIndexes(to); err != nil {
-		return ret, err
+	if startIndexes, err = b.findIndexes(from, b.shardDuration); err != nil {
+		return ret
+	} else if endIndexes, err = b.findIndexes(to, -b.shardDuration); err != nil {
+		return ret
 	}
 	// indexes in lookup table are stored in ascending order
 	// use first one for start, and last one for end indexes range
@@ -95,41 +97,44 @@ func (b *Bucket) Data(from, to time.Time) ([]data.Point, error) {
 	// to finish range retrieval, cut first and last shards to desired time range
 	// copy other shards as they are
 	for index, shard := range ranged {
-		if index == 1 {
+		switch {
+		case index == 0:
 			ret = append(ret, shard.DataFrom(from)...)
-		} else if index == len(ranged)-1 {
+		case index == len(ranged)-1:
 			ret = append(ret, shard.DataTo(to)...)
+		default:
+			ret = append(ret, shard.Data()...)
 		}
-		ret = append(ret, shard.Data()...)
 	}
 
-	return ret, nil
+	return ret
 }
 
 func (b *Bucket) Size() int {
 	return len(b.shards)
 }
 
-func (b *Bucket) findIndexes(t time.Time) ([]int, error) {
+func (b *Bucket) findIndexes(t time.Time, step time.Duration) ([]int, error) {
 	hash := timeHash(t)
 	lastTime := t
 
 	for {
-		// we heave reached end of the available shard timestamps
-		if lastTime.After(b.shards[b.index].MaxT()) {
-			break
-		}
-
 		if indexes, ok := b.shardsLookup[hash]; !ok {
-			// if no shard for this time hash exists, increase lookup by shard duration
-			lastTime = lastTime.Add(b.shardDuration)
+			// if no shard for this time hash exists, move lookup window by step - left or right
+			lastTime = lastTime.Add(step)
 			hash = timeHash(lastTime)
 		} else {
 			return indexes, nil
 		}
-	}
 
-	return []int{}, ErrIndexNotFound
+		if step > 0 && lastTime.After(b.shards[b.index].MaxT()) {
+			// we heave reached end of the available shard timestamps
+			return []int{}, ErrIndexNotFound
+		} else if step < 0 && lastTime.Before(b.shards[0].MinT()) {
+			// we moved before available timestamps window
+			return []int{}, ErrIndexNotFound
+		}
+	}
 }
 
 func timeHash(t time.Time) string {

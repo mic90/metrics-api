@@ -49,9 +49,8 @@ func TestBucket_Data_OnEmptyBucket(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	d, err := b.Data(time.Now(), time.Now())
+	d := b.Data(time.Now(), time.Now())
 
-	assert.NoError(t, err)
 	assert.Equal(t, 0, len(d))
 }
 
@@ -77,9 +76,10 @@ func TestBucket_Data_OnMultipleShards(t *testing.T) {
 	}
 
 	// read whole time range
-	d, err := b.Data(startTime, endTime)
+	d := b.Data(startTime, endTime)
 
-	assert.NoError(t, err)
 	assert.Equal(t, dataCount, b.Size())
 	assert.Equal(t, dataCount, len(d))
+	assert.Equal(t, float64(0), d[0].Value)
+	assert.Equal(t, float64(dataCount-1), d[len(d)-1].Value)
 }

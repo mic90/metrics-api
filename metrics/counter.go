@@ -24,5 +24,10 @@ func (c *Counter) AddData(dataPoint data.Point) error {
 	c.lastValue = dataPoint
 	c.to = dataPoint.Time
 
+	// if it's the first data point in metric, update metric start time
+	if len(c.values.Data()) == 1 {
+		c.from = dataPoint.Time
+	}
+
 	return nil
 }
