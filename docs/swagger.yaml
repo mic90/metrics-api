@@ -1,0 +1,194 @@
+basePath: /api/v1/
+definitions:
+  health.StatusResponse:
+    properties:
+      status:
+        type: string
+    type: object
+  metrics.MetricDataPoint:
+    properties:
+      time:
+        type: string
+      value:
+        type: number
+    type: object
+  metrics.MetricDescriptor:
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+    type: object
+  metrics.Value:
+    properties:
+      value:
+        type: number
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: metrics api supports storage and retrieval of various time-series metrics
+  title: Metrics API
+  version: "1.0"
+paths:
+  /health:
+    get:
+      description: returns health status of the serivce
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/health.StatusResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/health.StatusResponse'
+      summary: HealthCheck
+      tags:
+      - health
+  /metrics:
+    get:
+      consumes:
+      - application/json
+      description: returns all metrics descriptions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/metrics.MetricDescriptor'
+            type: array
+      summary: GetMetrics
+      tags:
+      - metrics
+    post:
+      consumes:
+      - application/json
+      description: adds new metric based on provided descriptor
+      parameters:
+      - description: Metric descriptor
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/metrics.MetricDescriptor'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: error
+          schema:
+            type: string
+      summary: AddMetric
+      tags:
+      - metrics
+  /metrics/:type/:name:
+    delete:
+      description: removes metric with all its data
+      parameters:
+      - description: Metric type
+        in: path
+        name: type
+        required: true
+        type: string
+      - description: Metric name
+        in: path
+        name: name
+        required: true
+        type: string
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: error
+          schema:
+            type: string
+      summary: RemoveMetric
+      tags:
+      - metrics
+  /metrics/:type/:name/data:
+    get:
+      consumes:
+      - application/json
+      description: returns data points for metric in given time range
+      parameters:
+      - description: Metric type
+        in: path
+        name: type
+        required: true
+        type: string
+      - description: Metric name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Begin timestamp in RFC3339 format
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: End timestamp in RFC3339 format
+        in: query
+        name: to
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/metrics.MetricDataPoint'
+            type: array
+        "400":
+          description: Bad parameters provided by user
+          schema:
+            type: string
+        "500":
+          description: Data retrieval field
+          schema:
+            type: string
+      summary: GetData
+      tags:
+      - metrics
+    post:
+      consumes:
+      - application/json
+      description: adds new data point to the metric
+      parameters:
+      - description: Metric type
+        in: path
+        name: type
+        required: true
+        type: string
+      - description: Metric name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Metric descriptor with value
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/metrics.Value'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: error
+          schema:
+            type: string
+      summary: AddData
+      tags:
+      - metrics
+swagger: "2.0"
