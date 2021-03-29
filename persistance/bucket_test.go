@@ -2,6 +2,7 @@ package persistance_test
 
 import (
 	"github.com/bradfitz/iter"
+	"github.com/mic90/metrics-api/metrics"
 	"github.com/mic90/metrics-api/metrics/data"
 	"github.com/mic90/metrics-api/persistance"
 	"github.com/stretchr/testify/assert"
@@ -11,12 +12,15 @@ import (
 
 const (
 	shardDuration = 1 * time.Minute
-	metricType    = "counter"
-	metricName    = "metric"
 )
 
+var metricDesc = metrics.Descriptor{
+	Name: "metric",
+	Type: "counter",
+}
+
 func TestBucket_AddData(t *testing.T) {
-	b, err := persistance.NewBucket(metricName, metricType, shardDuration)
+	b, err := persistance.NewBucket(metricDesc, shardDuration)
 
 	assert.NoError(t, err)
 
@@ -27,7 +31,7 @@ func TestBucket_AddData(t *testing.T) {
 }
 
 func TestBucket_AddData_ShouldCreateShard(t *testing.T) {
-	b, err := persistance.NewBucket(metricName, metricType, shardDuration)
+	b, err := persistance.NewBucket(metricDesc, shardDuration)
 
 	assert.NoError(t, err)
 
@@ -45,7 +49,7 @@ func TestBucket_AddData_ShouldCreateShard(t *testing.T) {
 }
 
 func TestBucket_Data_OnEmptyBucket(t *testing.T) {
-	b, err := persistance.NewBucket(metricName, metricType, shardDuration)
+	b, err := persistance.NewBucket(metricDesc, shardDuration)
 
 	assert.NoError(t, err)
 
@@ -55,7 +59,7 @@ func TestBucket_Data_OnEmptyBucket(t *testing.T) {
 }
 
 func TestBucket_Data_OnMultipleShards(t *testing.T) {
-	b, err := persistance.NewBucket(metricName, metricType, shardDuration)
+	b, err := persistance.NewBucket(metricDesc, shardDuration)
 
 	assert.NoError(t, err)
 

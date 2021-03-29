@@ -8,11 +8,11 @@ import (
 )
 
 func TestGauge_AddValue(t *testing.T) {
-	gauge := metrics.NewGauge("metric")
+	gauge := metrics.NewGauge()
 	value := data.FromValue(10)
 
 	err := gauge.AddData(value)
 
 	assert.NoError(t, err)
-	assert.Equal(t, value, gauge.Last().Value)
+	assert.Equal(t, value, gauge.Last())
 }
