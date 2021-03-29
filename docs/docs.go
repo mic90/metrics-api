@@ -37,13 +37,13 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/health.HealthCheck"
+                            "$ref": "#/definitions/health.StatusResponse"
                         }
                     },
                     "503": {
                         "description": "Service Unavailable",
                         "schema": {
-                            "$ref": "#/definitions/health.HealthCheck"
+                            "$ref": "#/definitions/health.StatusResponse"
                         }
                     }
                 }
@@ -176,14 +176,14 @@ var doc = `{
                     },
                     {
                         "type": "string",
-                        "description": "Begin timestamp",
+                        "description": "Begin timestamp in RFC3339 format",
                         "name": "from",
                         "in": "query",
                         "required": true
                     },
                     {
                         "type": "string",
-                        "description": "End timestamp",
+                        "description": "End timestamp in RFC3339 format",
                         "name": "to",
                         "in": "query",
                         "required": true
@@ -265,7 +265,7 @@ var doc = `{
         }
     },
     "definitions": {
-        "health.HealthCheck": {
+        "health.StatusResponse": {
             "type": "object",
             "properties": {
                 "status": {

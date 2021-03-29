@@ -1,12 +1,12 @@
 package health
 
-type HealthStatus string
+type Status string
 
 const (
-	HealthOk    HealthStatus = "OK"
-	HealthError HealthStatus = "ERROR"
+	OK    Status = "OK"
+	ERROR Status = "ERROR"
 )
 
-type HealthCheck struct {
-	Status HealthStatus `json:"status"`
+type StatusResponse struct {
+	Status Status `json:"status"`
 }

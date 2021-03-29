@@ -15,11 +15,11 @@ type Service struct {
 // @Description returns health status of the serivce
 // @Tags health
 // @Produce  json
-// @Success 200 {object} HealthCheck
-// @Failure 503 {object} HealthCheck
+// @Success 200 {object} StatusResponse
+// @Failure 503 {object} StatusResponse
 // @Router /health [get]
 func (h Service) HealthCheck(ctx *fiber.Ctx) error {
-	return ctx.JSON(HealthCheck{
-		Status: HealthOk,
+	return ctx.JSON(StatusResponse{
+		Status: OK,
 	})
 }
