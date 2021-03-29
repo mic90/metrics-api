@@ -1,0 +1,11 @@
+# Ignore all
+*
+.idea
+
+# Unignore all with extensions
+!*.go
+!*.mod
+!*.sum
+
+# Unignore all dirs
+!*/
