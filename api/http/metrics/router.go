@@ -11,4 +11,6 @@ func Router(app fiber.Router, svc *Service) {
 	r.Get("/", svc.GetMetrics)
 	r.Post("/", svc.AddMetric)
 	r.Delete("/:type/:name", svc.RemoveMetric)
+	r.Get("/:type/:name/data", svc.GetData)
+	r.Post("/:type/:name/data", svc.AddData)
 }
