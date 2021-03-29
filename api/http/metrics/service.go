@@ -19,6 +19,13 @@ func NewService(driver persistance.Storage) *Service {
 }
 
 // GetMetrics returns all metrics
+// @Summary GetMetrics
+// @Description returns all metrics descriptions
+// @Tags metrics
+// @Accept  json
+// @Produce  json
+// @Success 200 {array}  MetricDescriptor
+// @Router /metrics [get]
 func (m *Service) GetMetrics(ctx *fiber.Ctx) error {
 	met := m.driver.GetMetrics()
 	ret := make([]MetricDescriptor, 0, len(met))
@@ -33,7 +40,16 @@ func (m *Service) GetMetrics(ctx *fiber.Ctx) error {
 	return ctx.JSON(ret)
 }
 
-// GetMetrics returns all metrics
+// AddMetric adds new metric based on provided descriptor
+// @Summary AddMetric
+// @Description adds new metric based on provided descriptor
+// @Tags metrics
+// @Accept  json
+// @Produce  json
+// @Param message body MetricDescriptor true "Metric descriptor"
+// @Success 200
+// @Failure 400 {string} string "error"
+// @Router /metrics [post]
 func (m *Service) AddMetric(ctx *fiber.Ctx) error {
 	var descDTO MetricDescriptor
 	if err := ctx.BodyParser(&descDTO); err != nil {
@@ -45,6 +61,35 @@ func (m *Service) AddMetric(ctx *fiber.Ctx) error {
 		Type: descDTO.Type,
 	}
 	if err := m.driver.AddMetric(descriptor); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	return nil
+}
+
+// RemoveMetric removes metric with all its data
+// @Summary RemoveMetric
+// @Description removes metric with all its data
+// @Tags metrics
+// @Param type path string true "Metric type"
+// @Param name path string true "Metric name"
+// @Success 200
+// @Failure 400 {string} string "error"
+// @Router /metrics/:type/:name [delete]
+func (m *Service) RemoveMetric(ctx *fiber.Ctx) error {
+	metricType := ctx.Params("type")
+	metricName := ctx.Params("name")
+
+	if metricType == "" || metricName == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "all parameters are required")
+	}
+
+	desc := metrics.Descriptor{
+		Name: metricName,
+		Type: metricType,
+	}
+
+	if err := m.driver.RemoveMetric(desc); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
