@@ -6,6 +6,7 @@
 !*.go
 !*.mod
 !*.sum
+!*.yml
 
 # Unignore all dirs
 !*/
