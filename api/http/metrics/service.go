@@ -54,7 +54,7 @@ func (m *Service) GetMetrics(ctx *fiber.Ctx) error {
 func (m *Service) AddMetric(ctx *fiber.Ctx) error {
 	var descDTO MetricDescriptor
 	if err := ctx.BodyParser(&descDTO); err != nil {
-		return fiber.ErrBadRequest
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
 	descriptor := metrics.Descriptor{

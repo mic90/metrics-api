@@ -317,12 +317,12 @@ type swaggerInfo struct {
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
-	Version:     "1.0",
-	Host:        "localhost:8080",
-	BasePath:    "/api/v1/",
+	Version:     "",
+	Host:        "",
+	BasePath:    "",
 	Schemes:     []string{},
-	Title:       "Metrics API",
-	Description: "metrics api supports storage and retrieval of various time-series metrics",
+	Title:       "",
+	Description: "",
 }
 
 type s struct{}

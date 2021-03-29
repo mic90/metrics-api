@@ -9,7 +9,7 @@
 !*.yml
 !*.yaml
 !*.md
-!*docs/.json
+!docs/.json
 
 !*Dockerfile
 

@@ -1,8 +1,9 @@
-package http
+package health_test
 
 import (
 	"encoding/json"
 	"github.com/golang/mock/gomock"
+	api "github.com/mic90/metrics-api/api/http"
 	"github.com/mic90/metrics-api/api/http/health"
 	"github.com/mic90/metrics-api/api/http/metrics"
 	mocks "github.com/mic90/metrics-api/persistance/mocks"
@@ -12,7 +13,7 @@ import (
 	"testing"
 )
 
-func TestHealth_Get(t *testing.T) {
+func TestHealth_GetHealth(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -20,7 +21,7 @@ func TestHealth_Get(t *testing.T) {
 	healthSvc := &health.Service{}
 	metricsSvc := metrics.NewService(storage)
 
-	app := Setup(healthSvc, metricsSvc)
+	app := api.Setup(healthSvc, metricsSvc)
 
 	req, _ := http.NewRequest(
 		"GET",
