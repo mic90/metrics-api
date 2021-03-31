@@ -186,4 +186,53 @@ paths:
       summary: AddData
       tags:
       - metrics
+  /metrics/:type/:name/data/:reducer:
+    get:
+      consumes:
+      - application/json
+      description: returns reduce operation on data points from time range
+      parameters:
+      - description: Metric type
+        in: path
+        name: type
+        required: true
+        type: string
+      - description: Metric name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Reduce operation name
+        in: path
+        name: reducer
+        required: true
+        type: string
+      - description: Begin timestamp in RFC3339 format
+        in: query
+        name: from
+        required: true
+        type: string
+      - description: End timestamp in RFC3339 format
+        in: query
+        name: to
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/metrics.Value'
+        "400":
+          description: Bad parameters provided by user
+          schema:
+            type: string
+        "500":
+          description: Data retrieval field
+          schema:
+            type: string
+      summary: GetDataReduced
+      tags:
+      - metrics
 swagger: "2.0"
