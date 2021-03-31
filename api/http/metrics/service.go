@@ -219,6 +219,7 @@ func (m *Service) GetDataReduced(ctx *fiber.Ctx) error {
 	}
 
 	var (
+		reducer  operations.Reducer
 		fromTime time.Time
 		toTime   time.Time
 		err      error
@@ -237,24 +238,14 @@ func (m *Service) GetDataReduced(ctx *fiber.Ctx) error {
 		Type: metricType,
 	}
 
-	var reducer operations.Reducer
-
-	switch reducerName {
-	case "sum":
-		reducer = operations.NewSum(m.driver)
-	case "avg":
-		reducer = operations.NewAvg(m.driver)
-	case "min":
-		reducer = operations.NewMin(m.driver)
-	case "max":
-		reducer = operations.NewMax(m.driver)
-	default:
-		return fiber.NewError(fiber.StatusBadRequest, "unsupported reducer name")
+	if reducer, err = operations.FromName(reducerName, m.driver); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
 	if v, err = reducer.Process(descriptor, fromTime, toTime); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
+
 	return ctx.JSON(Value{
 		Value: v,
 	})

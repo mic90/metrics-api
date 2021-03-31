@@ -36,7 +36,7 @@ To increase data retrieval performance, metric data is split into smaller chunks
 
 The chunks are kept in sorted array, so when one index is found all consecutive data chunks can be retrieved by iterating that array.
 
-Additional lookup map is used to find chunks indexes, based on provided time ranges.
+Binary sort is used to find best matching elements for given time ranges.
 
 # API
 
