@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// Storage represents generic data storage for metrics
 type Storage interface {
 	GetMetrics() []metrics.Descriptor
 	AddMetric(metrics.Descriptor) error

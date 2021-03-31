@@ -46,7 +46,7 @@ func TestMetrics_AddMetrics(t *testing.T) {
 	assert.Equal(t, 200, res.StatusCode)
 }
 
-func TestMetrics_AddMetrics_UnsupportedMetric(t *testing.T) {
+func TestMetrics_AddMetrics_UnsupportedMetricType(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 

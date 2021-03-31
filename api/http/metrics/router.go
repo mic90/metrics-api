@@ -16,4 +16,5 @@ func Router(app fiber.Router, svc *Service) {
 	// metric data related endpoints
 	r.Get("/:type/:name/data", svc.GetData)
 	r.Post("/:type/:name/data", svc.AddData)
+	r.Get("/:type/:name/data/:reducer", svc.GetDataReduced)
 }

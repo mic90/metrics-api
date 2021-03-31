@@ -76,14 +76,80 @@ func TestBucket_Data_OnMultipleShards(t *testing.T) {
 		assert.NoError(t, err)
 
 		// make sure each data point will end up in different shards
-		endTime = endTime.Add(shardDuration * 2)
+		endTime = endTime.Add(shardDuration)
 	}
 
 	// read whole time range
 	d := b.Data(startTime, endTime)
 
-	assert.Equal(t, dataCount, b.Size())
+	assert.True(t, b.Size() > 1)
 	assert.Equal(t, dataCount, len(d))
 	assert.Equal(t, float64(0), d[0].Value)
 	assert.Equal(t, float64(dataCount-1), d[len(d)-1].Value)
+}
+
+func TestBucket_Data_EndAfterAvailableTimeRange(t *testing.T) {
+	b, err := persistance.NewBucket(metricDesc, shardDuration)
+
+	assert.NoError(t, err)
+
+	startTime := time.Now()
+	endTime := time.Now()
+	dataCount := 10
+
+	for i := range iter.N(dataCount) {
+		err := b.AddData(data.Point{
+			Value: float64(i),
+			Time:  endTime,
+		})
+
+		assert.NoError(t, err)
+
+		// make sure each data point will end up in different shards
+		endTime = endTime.Add(shardDuration)
+	}
+
+	// from range should start somewhere in the middle of the data points
+	from := startTime.Add(4 * time.Minute)
+	// end time is long after last data point
+	to := endTime.Add(1 * time.Hour)
+
+	// read whole time range
+	d := b.Data(from, to)
+
+	assert.True(t, b.Size() > 1)
+	assert.Equal(t, 6, len(d))
+	assert.Equal(t, float64(4), d[0].Value)
+	assert.Equal(t, float64(dataCount-1), d[len(d)-1].Value)
+}
+
+func TestBucket_Data_StartTimeAfterAvailableTimeRange(t *testing.T) {
+	b, err := persistance.NewBucket(metricDesc, shardDuration)
+
+	assert.NoError(t, err)
+
+	startTime := time.Now()
+	endTime := time.Now()
+	dataCount := 10
+
+	for i := range iter.N(dataCount) {
+		err := b.AddData(data.Point{
+			Value: float64(i),
+			Time:  endTime,
+		})
+
+		assert.NoError(t, err)
+
+		// make sure each data point will end up in different shards
+		endTime = endTime.Add(shardDuration)
+	}
+
+	// time ranges are long after last data point
+	from := startTime.Add(1 * time.Hour)
+	to := from.Add(1 * time.Hour)
+
+	d := b.Data(from, to)
+
+	assert.True(t, b.Size() > 1)
+	assert.Equal(t, 0, len(d))
 }

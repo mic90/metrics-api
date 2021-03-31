@@ -5,11 +5,13 @@ import (
 	"time"
 )
 
+// Timed is used for object with time range availability
 type Timed interface {
 	MinT() time.Time
 	MaxT() time.Time
 }
 
+// Metric describes generic metric with time range and data points
 type Metric interface {
 	Timed
 

@@ -7,16 +7,20 @@ import (
 
 var ErrInvalidValue = errors.New("counter can be only increased or reset")
 
+// Counter A counter is a cumulative metric that represents a single monotonically increasing counter
+// whose value can only increase or be reset to zero on restart.
 type Counter struct {
 	rawMetric
 }
 
+// NewCounter creates new counter with default data buffer
 func NewCounter() Metric {
 	return &Counter{
 		*newRaw(),
 	}
 }
 
+// AddData adds new data point to the metric
 func (c *Counter) AddData(dataPoint data.Point) error {
 	if dataPoint.Value < c.lastValue.Value && dataPoint.Value != 0 {
 		return ErrInvalidValue

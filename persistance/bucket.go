@@ -2,22 +2,23 @@ package persistance
 
 import (
 	"errors"
-	"fmt"
 	"github.com/mic90/metrics-api/metrics"
 	"github.com/mic90/metrics-api/metrics/data"
+	"sort"
 	"time"
 )
 
-var ErrIndexNotFound = errors.New("time index not found")
+var ErrNoIndexFound = errors.New("no index found")
 
+// Bucket stores single metric data, sharded in smaller chunks
 type Bucket struct {
 	descriptor    metrics.Descriptor
 	shards        []*Shard
-	shardsLookup  map[string][]int
 	shardDuration time.Duration
 	index         int
 }
 
+// NewBucket creates new bucket for given metric
 func NewBucket(desc metrics.Descriptor, dur time.Duration) (*Bucket, error) {
 	var (
 		m   metrics.Metric
@@ -28,20 +29,20 @@ func NewBucket(desc metrics.Descriptor, dur time.Duration) (*Bucket, error) {
 	}
 	shard := NewShard(m, dur)
 	return &Bucket{
-		desc,
-		[]*Shard{shard},
-		map[string][]int{
-			timeHash(shard.MinT()): {0},
-		},
-		dur,
-		0,
+		descriptor:    desc,
+		shards:        []*Shard{shard},
+		shardDuration: dur,
 	}, nil
 }
 
+// Descriptor returns metric descriptor for this bucket
 func (b *Bucket) Descriptor() metrics.Descriptor {
 	return b.descriptor
 }
 
+// AddData adds new data point to the bucket.
+// If given data point exceeds current chunk time range
+// new chunk will be created internally
 func (b *Bucket) AddData(dataPoint data.Point) error {
 	err := b.shards[b.index].AddData(dataPoint)
 
@@ -64,37 +65,29 @@ func (b *Bucket) AddData(dataPoint data.Point) error {
 	}
 
 	shard := NewShard(m, b.shardDuration)
-	hash := timeHash(shard.MinT())
 
 	b.shards = append(b.shards, shard)
 	b.index++
 
-	// store shards lookup data
-	if indexes, ok := b.shardsLookup[hash]; ok {
-		b.shardsLookup[hash] = append(indexes, b.index)
-	} else {
-		b.shardsLookup[hash] = []int{b.index}
-	}
-
 	return nil
 }
 
+// Data returns data merged from all chunks based on provided time range
 func (b *Bucket) Data(from, to time.Time) []data.Point {
 	var (
-		startIndexes []int
-		endIndexes   []int
-		err          error
-		ret          []data.Point
+		fromIndex int
+		toIndex   int
+		err       error
+		ret       []data.Point
 	)
 
-	if startIndexes, err = b.findIndexes(from, b.shardDuration); err != nil {
-		return ret
-	} else if endIndexes, err = b.findIndexes(to, -b.shardDuration); err != nil {
-		return ret
+	if fromIndex, toIndex, err = b.findIndexRange(from, to); err != nil {
+		// no data was found that matches given time range
+		return []data.Point{}
 	}
 	// indexes in lookup table are stored in ascending order
 	// use first one for start, and last one for end indexes range
-	ranged := b.shards[startIndexes[0] : endIndexes[len(endIndexes)-1]+1]
+	ranged := b.shards[fromIndex : toIndex+1]
 
 	// to finish range retrieval, cut first and last shards to desired time range
 	// copy other shards as they are
@@ -112,37 +105,64 @@ func (b *Bucket) Data(from, to time.Time) []data.Point {
 	return ret
 }
 
+// Size returns number of data chunks
 func (b *Bucket) Size() int {
 	return len(b.shards)
 }
 
+// Hash returns underlying metric unique hash
 func (b *Bucket) Hash() string {
 	return b.descriptor.Hash()
 }
 
-func (b *Bucket) findIndexes(t time.Time, step time.Duration) ([]int, error) {
-	hash := timeHash(t)
-	lastTime := t
+func (b *Bucket) findIndex(t time.Time) (int, error) {
+	index := sort.Search(len(b.shards), func(i int) bool {
+		return b.shards[i].EndT().Equal(t) || b.shards[i].EndT().After(t)
+	})
 
+	// no index was found, data probably ends before time t
+	if index == len(b.shards) {
+		return -1, ErrNoIndexFound
+	}
+
+	return index, nil
+}
+
+func (b *Bucket) findLast(t time.Time) int {
+	var (
+		index int
+		err   error
+	)
+
+	// no index was found - data probably ends before time t, return last available shard index
+	if index, err = b.findIndex(t); err != nil {
+		return len(b.shards) - 1
+	}
+
+	// make sure the shard fits given time range or is before
 	for {
-		if indexes, ok := b.shardsLookup[hash]; !ok {
-			// if no shard for this time hash exists, move lookup window by step - left or right
-			lastTime = lastTime.Add(step)
-			hash = timeHash(lastTime)
-		} else {
-			return indexes, nil
+		if (b.shards[index].MinT().Before(t) || b.shards[index].MinT().Equal(t)) &&
+			(b.shards[index].EndT().After(t) || b.shards[index].EndT().Equal(t)) {
+			return index
 		}
-
-		if step > 0 && lastTime.After(b.shards[b.index].MaxT()) {
-			// we heave reached end of the available shard timestamps
-			return []int{}, ErrIndexNotFound
-		} else if step < 0 && lastTime.Before(b.shards[0].MinT()) {
-			// we moved before available timestamps window
-			return []int{}, ErrIndexNotFound
-		}
+		index--
 	}
 }
 
-func timeHash(t time.Time) string {
-	return fmt.Sprintf("%d%d%d%d", t.Day(), t.Month(), t.Year(), t.Hour())
+func (b *Bucket) findIndexRange(from, to time.Time) (int, int, error) {
+	var (
+		fromIndex int
+		toIndex   int
+		err       error
+	)
+
+	if fromIndex, err = b.findIndex(from); err != nil {
+		return -1, -1, err
+	}
+
+	// when there is already a start index do not report errors
+	// in case we missed the time range, just return last available index
+	toIndex = b.findLast(to)
+
+	return fromIndex, toIndex, nil
 }

@@ -3,6 +3,7 @@ package metrics
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/mic90/metrics-api/metrics"
+	"github.com/mic90/metrics-api/operations"
 	"github.com/mic90/metrics-api/persistance"
 	"time"
 )
@@ -179,9 +180,82 @@ func (m *Service) GetData(ctx *fiber.Ctx) error {
 		Name: metricName,
 		Type: metricType,
 	}
-	if data, err := m.driver.GetData(descriptor, fromTime, toTime); err != nil {
+	if d, err := m.driver.GetData(descriptor, fromTime, toTime); err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	} else {
-		return ctx.JSON(data)
+		return ctx.JSON(d)
 	}
+}
+
+// GetDataReduced returns reduce operation on data points from time range
+// @Summary GetDataReduced
+// @Description returns reduce operation on data points from time range
+// @Tags metrics
+// @Accept  json
+// @Produce  json
+// @Param type path string true "Metric type"
+// @Param name path string true "Metric name"
+// @Param reducer path string true "Reduce operation name"
+// @Param from query string true "Begin timestamp in RFC3339 format"
+// @Param to query string true "End timestamp in RFC3339 format"
+// @Success 200 {object} Value
+// @Failure 400 {string} string "Bad parameters provided by user"
+// @Failure 500 {string} string "Data retrieval field"
+// @Router /metrics/:type/:name/data/:reducer [get]
+func (m *Service) GetDataReduced(ctx *fiber.Ctx) error {
+	metricType := ctx.Params("type")
+	metricName := ctx.Params("name")
+	reducerName := ctx.Params("reducer")
+
+	if metricType == "" || metricName == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "metric description params are required")
+	}
+
+	from := ctx.Query("from")
+	to := ctx.Query("to")
+
+	if from == "" || to == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "full date range is required")
+	}
+
+	var (
+		fromTime time.Time
+		toTime   time.Time
+		err      error
+		v        float64
+	)
+
+	if fromTime, err = time.Parse(time.RFC3339, from); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+	if toTime, err = time.Parse(time.RFC3339, to); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	descriptor := metrics.Descriptor{
+		Name: metricName,
+		Type: metricType,
+	}
+
+	var reducer operations.Reducer
+
+	switch reducerName {
+	case "sum":
+		reducer = operations.NewSum(m.driver)
+	case "avg":
+		reducer = operations.NewAvg(m.driver)
+	case "min":
+		reducer = operations.NewMin(m.driver)
+	case "max":
+		reducer = operations.NewMax(m.driver)
+	default:
+		return fiber.NewError(fiber.StatusBadRequest, "unsupported reducer name")
+	}
+
+	if v, err = reducer.Process(descriptor, fromTime, toTime); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+	return ctx.JSON(Value{
+		Value: v,
+	})
 }

@@ -4,6 +4,7 @@ import "errors"
 
 var ErrUnsupportedMetricType = errors.New("unsupported metric type")
 
+// FromDescriptor creates metric based on descriptor
 func FromDescriptor(desc Descriptor) (Metric, error) {
 	switch {
 	case desc.Type == "counter":
