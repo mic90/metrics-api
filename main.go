@@ -10,6 +10,12 @@ import (
 	"log"
 )
 
+// Setup configures HTTP api endpoints
+// @title Metrics API
+// @version 1.0
+// @description metrics api supports storage and retrieval of various time-series metrics
+// @host localhost:8080
+// @BasePath /api/v1/
 func main() {
 	// setup health routes
 	healthService := &health.Service{}

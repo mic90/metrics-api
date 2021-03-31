@@ -1,8 +1,13 @@
 {
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "description": "metrics api supports storage and retrieval of various time-series metrics",
+        "title": "Metrics API",
+        "contact": {},
+        "version": "1.0"
     },
+    "host": "localhost:8080",
+    "basePath": "/api/v1/",
     "paths": {
         "/health": {
             "get": {
