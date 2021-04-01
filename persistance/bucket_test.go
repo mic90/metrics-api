@@ -153,3 +153,38 @@ func TestBucket_Data_StartTimeAfterAvailableTimeRange(t *testing.T) {
 	assert.True(t, b.Size() > 1)
 	assert.Equal(t, 0, len(d))
 }
+
+func TestBucket_Data_OnOneShard(t *testing.T) {
+	duration := 1 * time.Hour
+	b, err := persistance.NewBucket(metricDesc, duration)
+
+	assert.NoError(t, err)
+
+	startTime := time.Now()
+	endTime := time.Now()
+	dataCount := 20
+
+	for i := range iter.N(dataCount) {
+		err := b.AddData(data.Point{
+			Value: float64(i),
+			Time:  endTime,
+		})
+
+		assert.NoError(t, err)
+
+		// make sure each data point will end up in different shards
+		endTime = endTime.Add(shardDuration)
+	}
+
+	// from range should start somewhere in the middle of the data points
+	from := startTime.Add(4 * time.Minute)
+	// end time should end somewhere before data range
+	to := from.Add(5 * time.Minute)
+
+	d := b.Data(from, to)
+
+	assert.Equal(t, 1, b.Size())
+	assert.Equal(t, 5, len(d))
+	assert.Equal(t, 4.0, d[0].Value)
+	assert.Equal(t, 8.0, d[len(d)-1].Value)
+}

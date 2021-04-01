@@ -89,6 +89,11 @@ func (b *Bucket) Data(from, to time.Time) []data.Point {
 	// use first one for start, and last one for end indexes range
 	ranged := b.shards[fromIndex : toIndex+1]
 
+	// if all data is contained in one shard
+	if len(ranged) == 1 {
+		return ranged[0].DataRange(from, to)
+	}
+
 	// to finish range retrieval, cut first and last shards to desired time range
 	// copy other shards as they are
 	for index, shard := range ranged {
