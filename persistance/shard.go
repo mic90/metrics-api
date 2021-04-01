@@ -67,6 +67,7 @@ func (s *Shard) DataTo(t time.Time) []data.Point {
 func (s *Shard) DataRange(from, to time.Time) []data.Point {
 	var (
 		fromIndexFound bool
+		toIndexFound   bool
 		fromIndex      int
 		toIndex        int
 	)
@@ -78,6 +79,7 @@ func (s *Shard) DataRange(from, to time.Time) []data.Point {
 		}
 		if dp.Time.After(to) {
 			toIndex = index
+			toIndexFound = true
 			break
 		}
 	}
@@ -85,6 +87,11 @@ func (s *Shard) DataRange(from, to time.Time) []data.Point {
 	// if there is no data that starts after start index, return empty array
 	if !fromIndexFound {
 		return []data.Point{}
+	}
+
+	// last index was not found, use last available data point
+	if !toIndexFound {
+		toIndex = s.metric.Size()
 	}
 
 	return s.metric.Data()[fromIndex:toIndex]

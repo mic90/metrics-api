@@ -96,9 +96,6 @@ func TestMemory_GetData(t *testing.T) {
 	}
 	dataPointsCount := 100
 
-	from := time.Now()
-	to := from.Add(1 * time.Minute)
-
 	errAdd := m.AddMetric(metricDescriptor)
 
 	assert.NoError(t, errAdd)
@@ -108,6 +105,10 @@ func TestMemory_GetData(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+
+	// make sure all data points are in the time range
+	from := time.Now().Add(-1 * time.Minute)
+	to := from.Add(1 * time.Minute)
 
 	ret, err := m.GetData(metricDescriptor, from, to)
 	assert.NoError(t, err)
